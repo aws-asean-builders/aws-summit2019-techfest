@@ -1,4 +1,4 @@
-**NOTE:** After reading the description below, choose the programming language of your choice and follow that link to full instructions to complete this tutorial.  You will clone a specific branch of this repository for complete instructions, **not** this master branch where only a description of the workshop exists.
+**NOTE:** After reading the description below, you will clone a specific branch of this repository for complete instructions, **not** this master branch where only a description of the workshop exists.
 
 # Build a Modern Application on AWS
 
@@ -14,7 +14,7 @@ That's why we've hired you to be our first Full Stack Engineer. We need a more s
 
 **AWS Experience: Beginner**
 
-**Time to Complete: 6-7 hours**
+**Time to Complete: 2-3 hours**
 
 **Cost to Complete: Many of the services used are included in the AWS Free Tier. For those that are not, the sample application will cost, in total, less than $1/day.**
 
@@ -38,15 +38,7 @@ This sample application will use many different AWS services and features that m
 
 To learn more about how to build your own **Well Architected** and modern application on AWS, please [visit here](https://aws.amazon.com/architecture/well-architected/) for additional content about following AWS best practices in your own architecture.
 
-### **Choose Your Language**
-
-This workshop is offered in different programming languages so that you can choose the workshop experience most relevant to you!  Please follow one of the below links to begin the workshop in the language of your choosing:
-
-* [**Python**](https://github.com/aws-samples/aws-modern-application-workshop/tree/python)
-* [**.NET**](https://github.com/aws-samples/aws-modern-application-workshop/tree/dotnet)
-* [**Java**](https://github.com/aws-samples/aws-modern-application-workshop/tree/java)
-* [**Go**](https://github.com/aws-samples/aws-modern-application-workshop/tree/go)
-* More coming soon!
+This workshop is offered in Python. [Click here](https://github.com/aws-asean-builders/aws-modern-application-workshop/tree/python) to get started
 
 
 ### AWS Developer Center
