@@ -1,7 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: This stack deploys the core network infrastructure and IAM resources
-             to be used for a service hosted in Amazon ECS using AWS Fargate.
+Description: TechFest Build It - prerequisites
 
 Mappings:
   # Hard values for the subnet masks. These masks define
@@ -28,6 +27,7 @@ Mappings:
       CIDR: '10.0.2.0/24'
     PrivateTwo:
       CIDR: '10.0.3.0/24'
+
 Resources:
   # VPC in which containers will be networked.
   # It has two public subnets, and two private subnets.
@@ -215,6 +215,7 @@ Resources:
   EcsServiceRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: Mysfit-TechFest-ECSServiceRole
       AssumeRolePolicyDocument:
         Statement:
         - Effect: Allow
@@ -276,6 +277,7 @@ Resources:
   ECSTaskRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: Mysfit-TechFest-ECSTaskRole
       AssumeRolePolicyDocument:
         Statement:
         - Effect: Allow
@@ -311,16 +313,140 @@ Resources:
                 - 'dynamodb:GetItem'
               Resource: 'arn:aws:dynamodb:*:*:table/MysfitsTable*'
 
-  # An IAM role that allows the AWS CodePipeline service to perform it's
-  # necessary actions. We have intentionally left permissions on this role
-  # that will not be used by the CodePipeline service during this workshop.
-  # This will allow you to more simply use CodePipeline in the future should
-  # you want to use the service for Pipelines that interact with different
-  # AWS services than the ones used in this workshop.
+  # Website bucket
+  WWWBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+
+  ## Cloudfront
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "Private access to Mysfits website bucket"
+
+  WebDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      Tags:
+        - Key: project
+          Value: summit2019
+      DistributionConfig:
+        Origins:
+        - DomainName:
+            Fn::GetAtt:
+            - WWWBucket
+            - DomainName
+          Id: S3Origin
+          S3OriginConfig:
+            OriginAccessIdentity:
+              Fn::Join:
+              - ''
+              - - 'origin-access-identity/cloudfront/'
+                - Ref: CloudFrontOriginAccessIdentity
+        Enabled: 'true'
+        Comment: CloudFront Distribution for Mysfits lab.
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          AllowedMethods:
+          - GET
+          - HEAD
+          - OPTIONS
+          TargetOriginId: S3Origin
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_200
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
+  # CI/CD pipeline
+  # Code repository
+  CodeCommitRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties: 
+      RepositoryDescription: Mysfits source code
+      RepositoryName: MythicalMysfitsService-Repository
+
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+
+  # CodeBuild service role
+  MythicalMysfitsServiceCodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: "MythicalMysfitsService-CodeBuildServicePolicy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action:
+            - "codecommit:ListBranches"
+            - "codecommit:ListRepositories"
+            - "codecommit:BatchGetRepositories"
+            - "codecommit:Get*"
+            - "codecommit:GitPull"
+            Resource:
+            - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:MythicalMysfitsService-Repository
+          - Effect: "Allow"
+            Action:
+            - "logs:CreateLogGroup"
+            - "logs:CreateLogStream"
+            - "logs:PutLogEvents"
+            Resource: "*"
+          - Effect: "Allow"
+            Action:
+            - "s3:PutObject"
+            - "s3:GetObject"
+            - "s3:GetObjectVersion"
+            - "s3:ListBucket"
+            Resource: "*"
+          - Effect: "Allow"
+            Action:
+            - "ecr:InitiateLayerUpload"
+            - "ecr:GetAuthorizationToken"
+            Resource: "*"
+            
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: MythicalMysfitsServiceCodeBuildProject  
+      Artifacts: 
+        Type: NO_ARTIFACTS
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        EnvironmentVariables:
+          - Name: AWS_ACCOUNT_ID
+            Value: !Ref AWS::AccountId
+          - Name: AWS_DEFAULT_REGION
+            Value: !Ref AWS::Region
+        Image: aws/codebuild/python:3.5.2
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt MythicalMysfitsServiceCodeBuildServiceRole.Arn
+      Source:
+        Type: CODECOMMIT
+        Location: !GetAtt CodeCommitRepo.CloneUrlHttp
+      Tags: 
+        - Key: project
+          Value: summit2019
+
   MythicalMysfitsServiceCodePipelineServiceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: MythicalMysfitsServiceCodePipelineServiceRole
       AssumeRolePolicyDocument:
         Statement:
         - Effect: Allow
@@ -364,58 +490,124 @@ Resources:
             Effect: Allow
           Version: "2012-10-17"
 
-  # An IAM role that allows the AWS CodeBuild service to perform the actions
-  # required to complete a build of our source code retrieved from CodeCommit,
-  # and push the created image to ECR.
-  MythicalMysfitsServiceCodeBuildServiceRole:
-    Type: AWS::IAM::Role
+  MythicalMysfitsServiceCodePipeline:
+    Type: AWS::CodePipeline::Pipeline
     Properties:
-      RoleName: MythicalMysfitsServiceCodeBuildServiceRole
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+      Name: MythicalMysfitsServiceCICDPipeline
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      RoleArn: !GetAtt MythicalMysfitsServiceCodePipelineServiceRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+          - InputArtifacts: []
+            Name: Source
+            ActionTypeId:
+              Category: Source
+              Owner: AWS
+              Version: '1'
+              Provider: CodeCommit
+            OutputArtifacts:
+            - Name: MythicalMysfitsService-SourceArtifact
+            Configuration:
+              BranchName: master
+              RepositoryName: MythicalMysfitsService-Repository
+            RunOrder: 1
+        - Name: Build
+          Actions:
+          - Name: Build
+            ActionTypeId:
+              Category: Build
+              Owner: AWS
+              Version: '1'
+              Provider: CodeBuild
+            OutputArtifacts:
+            - Name: MythicalMysfitsService-BuildArtifact
+            InputArtifacts:
+            - Name: MythicalMysfitsService-SourceArtifact
+            Configuration:
+              ProjectName: MythicalMysfitsServiceCodeBuildProject
+            RunOrder: 1
+        - Name: Deploy
+          Actions:
+          - Name: Deploy
+            ActionTypeId:
+              Category: Deploy
+              Owner: AWS
+              Version: '1'
+              Provider: ECS
+            InputArtifacts:
+            - Name: MythicalMysfitsService-BuildArtifact
+            Configuration:
+              ClusterName: MythicalMysfits-Cluster
+              ServiceName: MythicalMysfits-Service
+              FileName: imagedefinitions.json
+
+  # Update artifact bucket policy
+  ArtifactBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref ArtifactBucket
+      PolicyDocument:
         Statement:
+        - Sid: WhitelistedGet
           Effect: Allow
           Principal:
-            Service: codebuild.amazonaws.com
-          Action: sts:AssumeRole
-      Policies:
-      - PolicyName: "MythicalMysfitsService-CodeBuildServicePolicy"
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-          - Effect: "Allow"
-            Action:
-            - "codecommit:ListBranches"
-            - "codecommit:ListRepositories"
-            - "codecommit:BatchGetRepositories"
-            - "codecommit:Get*"
-            - "codecommit:GitPull"
-            Resource:
-            - Fn::Sub: arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:MythicalMysfitsServiceRepository
-          - Effect: "Allow"
-            Action:
-            - "logs:CreateLogGroup"
-            - "logs:CreateLogStream"
-            - "logs:PutLogEvents"
-            Resource: "*"
-          - Effect: "Allow"
-            Action:
-            - "s3:PutObject"
-            - "s3:GetObject"
-            - "s3:GetObjectVersion"
-            - "s3:ListBucket"
-            Resource: "*"
-          - Effect: "Allow"
-            Action:
-            - "ecr:InitiateLayerUpload"
-            - "ecr:GetAuthorizationToken"
-            Resource: "*"
+            AWS:
+            - !GetAtt MythicalMysfitsServiceCodeBuildServiceRole.Arn
+            - !GetAtt MythicalMysfitsServiceCodePipelineServiceRole.Arn
+          Action:
+          - s3:GetObject
+          - s3:GetObjectVersion
+          - s3:GetBucketVersioning
+          Resource:
+          - Fn::Join: 
+              - ""
+              - 
+                - "arn:aws:s3:::"
+                - !Ref ArtifactBucket
+                - "/*"
+          - Fn::Join: 
+              - ""
+              - 
+                - "arn:aws:s3:::"
+                - !Ref ArtifactBucket
+        - Sid: WhitelistedPut
+          Effect: Allow
+          Principal:
+            AWS:
+            - !GetAtt MythicalMysfitsServiceCodeBuildServiceRole.Arn
+            - !GetAtt MythicalMysfitsServiceCodePipelineServiceRole.Arn
+          Action: s3:PutObject
+          Resource:
+          - Fn::Join: 
+              - ""
+              - 
+                - "arn:aws:s3:::"
+                - !Ref ArtifactBucket
+                - "/*"
+          - Fn::Join: 
+              - ""
+              - 
+                - "arn:aws:s3:::"
+                - !Ref ArtifactBucket
 
 
-# These are the values output by the CloudFormation template. Be careful
-# about changing any of them, because of them are exported with specific
-# names so that the other task related CF templates can use them.
 Outputs:
+  CloudFrontDistribution:
+    Description: CloudFront Distribution Endpoint
+    Value: 
+      Fn::Join:
+        - ''
+        - 
+          - 'https://'
+          - !GetAtt WebDistribution.DomainName
+  WebsiteBucket:
+    Description: REPLACE_ME_BUCKET_NAME
+    Value: !Ref WWWBucket
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'WWWBucket' ] ]
   CurrentRegion:
     Description: REPLACE_ME_REGION
     Value: !Ref AWS::Region

@@ -2,7 +2,7 @@
 
 ![Architecture](/images/module-4/architecture-module-4.png)
 
-**Time to complete:** 60 minutes
+**Time to complete:** 40 minutes
 
 **Services used:**
 * [Amazon Cognito](http://aws.amazon.com/cognito/)
@@ -155,7 +155,13 @@ Refresh the Mythical Mysfits website in your browser to see the new functionalit
 
 This concludes Module 4.
 
-[Proceed to Module 5](/module-5)
+# Conclusion
+
+This experience was meant to give you a taste of what it's like to be a developer designing and building modern application architectures on top of AWS.  Developers on AWS are able to programmatically provision resources using the AWS CLI, reuse infrastructure definitions via AWS CloudFormation, automatically build and deploy code changes using the AWS developer tool suite of Code services, and take advantage of multiple different compute and application service capabilities that do not require you to provision or manage any servers at all!
+
+As a great next step, to learn more about the inner workings of the Mythical Mysfits website that you've created, dive into the provided CloudFormation templates and the resources declared within them. Also refer to the [aws-samples repository on GitHub](https://github.com/aws-samples/aws-modern-application-workshop) for a more comprehensive version of this lab.
+
+We hope you have enjoyed the AWS Modern Application Workshop!
 
 
 ## [AWS Developer Center](https://developer.aws)

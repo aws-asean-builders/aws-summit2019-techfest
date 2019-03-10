@@ -2,7 +2,7 @@
 
 ![Architecture](/images/module-2/architecture-module-2.png)
 
-**Time to complete:** 60 minutes
+**Time to complete:** 40 minutes
 
 **Services used:**
 * [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
@@ -22,9 +22,11 @@
 
 In Module 2, you will create a new microservice hosted using [AWS Fargate](https://aws.amazon.com/fargate/) on [Amazon Elastic Container Service](https://aws.amazon.com/ecs/) so that your Mythical Mysfits website can have a application backend to integrate with. AWS Fargate is a deployment option in Amazon ECS that allows you to deploy containers without having to manage any clusters or servers. For our Mythical Mysfits backend, we will use Python and create a Flask app in a Docker container behind a Network Load Balancer. These will form the microservice backend for the frontend website to integrate with.
 
-### Creating the Core Infrastructure using AWS CloudFormation
+### Core Infrastructure
 
-Before we can create our service, we need to create the core infrastructure environment that the service will use, including the networking infrastructure in [Amazon VPC](https://aws.amazon.com/vpc/), and the [AWS Identity and Access Management](https://aws.amazon.com/iam/) Roles that will define the permissions that ECS and our containers will have on top of AWS.  We will use [AWS CloudFormation](https://aws.amazon.com/cloudformation/) to accomplish this. AWS CloudFormation is a service that can programmatically provision AWS resources that you declare within JSON or YAML files called *CloudFormation Templates*, enabling the common best practice of *Infrastructure as Code*.  We have provided a CloudFormation template to create all of the necessary Network and Security resources in /module-2/cfn/core.yml.  This template will create the following resources:
+Before we can create our service, we need to create the core infrastructure environment that the service will use, including the networking infrastructure in [Amazon VPC](https://aws.amazon.com/vpc/), and the [AWS Identity and Access Management](https://aws.amazon.com/iam/) Roles that will define the permissions that ECS and our containers will have on top of AWS.  We have used [AWS CloudFormation](https://aws.amazon.com/cloudformation/) to accomplish this. AWS CloudFormation is a service that can programmatically provision AWS resources that you declare within JSON or YAML files called *CloudFormation Templates*, enabling the common best practice of *Infrastructure as Code*.  
+
+We have deployed a CloudFormation template to create all of the necessary Network and Security resources in /module-2/cfn/core.yml.  This template has created the following resources:
 
 * [**An Amazon VPC**](https://aws.amazon.com/vpc/) - a network environment that contains four subnets (two public and two private) in the 10.0.0.0/16 private IP space, as well as all the needed Route Table configurations.  The subnets for this network are created in separate AWS Availability Zones (AZ) to enable high availability across multiple physical facilities in an AWS Region. Learn more about how AZs can help you achieve High Availability [here](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html).
 * [**Two NAT Gateways**](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html) (one for each public subnet, also spanning multiple AZs) - allow the containers we will eventually deploy into our private subnets to communicate out to the Internet to download necessary packages, etc.
@@ -32,23 +34,11 @@ Before we can create our service, we need to create the core infrastructure envi
 * [**A Security Group**](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html) - Allows your docker containers to receive traffic on port 8080 from the Internet through the Network Load Balancer.
 * [**IAM Roles**](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html) - Identity and Access Management Roles are created. These will be used throughout the workshop to give AWS services or resources you create access to other AWS services like DynamoDB, S3, and more.
 
-To create these resources, run the following command in the Cloud9 terminal (will take ~10 minutes for stack to be created):
-
-```
-aws cloudformation create-stack --stack-name MythicalMysfitsCoreStack --capabilities CAPABILITY_NAMED_IAM --template-body file://~/environment/aws-modern-application-workshop/module-2/cfn/core.yml   
-```
-
-You can check on the status of your stack creation either via the AWS Console or by running the command:
+You can check your stack either via the AWS Console or by running the command:
 
 ```
 aws cloudformation describe-stacks --stack-name MythicalMysfitsCoreStack
 ```
-
-Run the the `describe-stacks` command, until you see a status of ```"StackStatus": "CREATE_COMPLETE"```
-![cfn-complete.png](/images/module-2/cfn-complete.png)
-
-
-When you get this response, CloudFormation has finished provisioning all of the core networking and security resources described above and you can proceed. Wait for the above stack to show `CREATE_COMPLETE` before proceeding on.   
 
 **You will be using values from the output of this command throughout the rest of the workshop.  You can run the following command to directly output the above `describe-stacks` command to a new file in your IDE that will be stored as `cloudformation-core-output.json`:**
 
@@ -74,7 +64,7 @@ Docker comes already installed on the Cloud9 IDE that you've created, so in orde
 cd ~/environment/aws-modern-application-workshop/module-2/app
 ```
 
-* You can get your account ID and default region from the output of the previous CloudFormation **describe-stacks
+* You can get your account ID and default region from the output of the previous CloudFormation **describe-stacks**
 
 * Replace *REPLACE_ME_ACCOUNT_ID* with your account ID and *REPLACE_ME_REGION* with your default region in the following command to build the docker image using the file *Dockerfile*, which contains Docker instructions. The command tags the Docker image, using the `-t` option, with a specific tag format so that the image can later be pushed to the [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/) service.
 
@@ -275,7 +265,9 @@ To upload this file to your S3 hosted website, use the bucket name again that wa
 aws s3 cp ~/environment/aws-modern-application-workshop/module-2/web/index.html s3://INSERT-YOUR-BUCKET-NAME/index.html
 ```
 
- Open your website using the same URL used at the end of Module 1 in order to see your new Mythical Mysfits website, which is retrieving JSON data from your Flask API running within a docker container deployed to AWS Fargate!
+Open your website using the same URL used at the end of Module 1 in order to see your new Mythical Mysfits website, which is retrieving JSON data from your Flask API running within a docker container deployed to AWS Fargate!
+
+**Note: If the page does not load completely, your browser could be preventing the loading of mixed content. This is because CloudFront connection is over https while NLB connection is over http. You can configure your browser to ignore this for now. We will sort this by using https end to end in Module 4.**
 
 
 ## Module 2b: Automating Deployments using AWS Code Services
@@ -284,58 +276,33 @@ aws s3 cp ~/environment/aws-modern-application-workshop/module-2/web/index.html 
 
 
 ### Creating the CI/CD Pipeline
+We have created the CI/CD pipeline as part of the core CloudFormation stack. Here is an overview of the different components of the pipeline.
 
-#### Create a S3 Bucket for Pipeline Artifacts
+#### S3 Bucket for Pipeline Artifacts
 
 Now that you have a service up and running, you may think of code changes that you'd like to make to your Flask service.  It would be a bottleneck for your development speed if you had to go through all of the same steps above every time you wanted to deploy a new feature to your service. That's where Continuous Integration and Continuous Delivery or CI/CD come in!
 
 In this module, you will create a fully managed CI/CD stack that will automatically deliver all of the code changes that you make to your code base to the service you created during the last module.  
 
-First, we need to create another S3 bucket that will be used to store the temporary artifacts that are created in the middle of our CI/CD pipeline executions.  Choose a new bucket name for these artifacts and create one using the following CLI command:
+First, we have already created a S3 bucket that will be used to store the temporary artifacts that are created in the middle of our CI/CD pipeline executions - mythicalmysfitscorestack-artifactbucket-xxxxxx
 
-```
-aws s3 mb s3://REPLACE_ME_CHOOSE_ARTIFACTS_BUCKET_NAME
-```
+Next, this bucket needs a bucket policy to define permissions for the data stored within it. But unlike our website bucket that allowed access to anyone, only our CI/CD pipeline should have access to this bucket. On the AWS S3 console, select the bucket and then choose "Permissions". Have a look at the bucket policy
 
-Next, this bucket needs a bucket policy to define permissions for the data stored within it. But unlike our website bucket that allowed access to anyone, only our CI/CD pipeline should have access to this bucket.  We have provided the JSON file needed for this policy at `~/environment/aws-modern-application-workshop/module-2/aws-cli/artifacts-bucket-policy.json`.  Open this file, and inside you will need to replace several strings to include the ARNs that were created as part of the MythicalMysfitsCoreStack earlier, as well as your newly chosen bucket name for your CI/CD artifacts.
+#### CodeCommit Repository
 
-Once you've modified and saved this file, execute the following command to grant access to this bucket to your CI/CD pipeline:
+You'll need a place to push and store your code in. We use [**AWS CodeCommit Repository**](https://aws.amazon.com/codecommit/) for this purpose.
 
-```
-aws s3api put-bucket-policy --bucket REPLACE_ME_ARTIFACTS_BUCKET_NAME --policy file://~/environment/aws-modern-application-workshop/module-2/aws-cli/artifacts-bucket-policy.json
-```
+#### CodeBuild Project
 
-#### Create a CodeCommit Repository
+With a repository to store our code in, and an S3 bucket that will be used for our CI/CD artifacts, the missing piece is a way for a service build to occur.  This will be accomplished by creating an [**AWS CodeBuild Project**](https://aws.amazon.com/codebuild/).  Any time a build execution is triggered, AWS CodeBuild will automatically provision a build server to our configuration and execute the steps required to build our docker image and push a new version of it to the ECR repository we created (and then spin the server down when the build is completed).  The steps for our build (which package our Python code and build/push the Docker container) are included in the `~/environment/aws-modern-application-workshop/module-2/app/buildspec.yml` file.  The **buildspec.yml** file is what you create to instruct CodeBuild what steps are required for a build execution within a CodeBuild project.
 
-You'll need a place to push and store your code in. Create an [**AWS CodeCommit Repository**](https://aws.amazon.com/codecommit/) using the CLI for this purpose:
+#### CodePipeline Pipeline
 
-```
-aws codecommit create-repository --repository-name MythicalMysfitsService-Repository
-```
-
-#### Create a CodeBuild Project
-
-With a repository to store our code in, and an S3 bucket that will be used for our CI/CD artifacts, lets add to the CI/CD stack with a way for a service build to occur.  This will be accomplished by creating an [**AWS CodeBuild Project**](https://aws.amazon.com/codebuild/).  Any time a build execution is triggered, AWS CodeBuild will automatically provision a build server to our configuration and execute the steps required to build our docker image and push a new version of it to the ECR repository we created (and then spin the server down when the build is completed).  The steps for our build (which package our Python code and build/push the Docker container) are included in the `~/environment/aws-modern-application-workshop/module-2/app/buildspec.yml` file.  The **buildspec.yml** file is what you create to instruct CodeBuild what steps are required for a build execution within a CodeBuild project.
-
-To create the CodeBuild project, another CLI input file is required to be updated with parameters specific to your resources. It is located at `~/environment/aws-modern-application-workshop/module-2/aws-cli/code-build-project.json`.  Similarly replace the values within this file as you have done before from the MythicalMysfitsCoreStackOutput. Once saved, execute the following with the CLI to create the project:
-
-```
-aws codebuild create-project --cli-input-json file://~/environment/aws-modern-application-workshop/module-2/aws-cli/code-build-project.json
-```
-
-#### Create a CodePipeline Pipeline
-
-Finally, we need a way to *continuously integrate* our CodeCommit repository with our CodeBuild project so that builds will automatically occur whenever a code change is pushed to the repository.  Then, we need a way to *continuously deliver* those newly built artifacts to our service in ECS.  [**AWS CodePipeline**](https://aws.amazon.com/codepipeline/) is the service that glues these actions together in a **pipeline** you will create next.  
+Finally, we need a way to *continuously integrate* our CodeCommit repository with our CodeBuild project so that builds will automatically occur whenever a code change is pushed to the repository.  Then, we need a way to *continuously deliver* those newly built artifacts to our service in ECS.  [**AWS CodePipeline**](https://aws.amazon.com/codepipeline/) is the service that glues these actions together in a **pipeline**.  
 
 Your pipeline in CodePipeline will do just what I described above.  Anytime a code change is pushed into your CodeCommit repository, CodePipeline will deliver the latest code to your AWS CodeBuild project so that a build will occur. When successfully built by CodeBuild, CodePipeline will perform a deployment to ECS using the latest container image that the CodeBuild execution pushed into ECR.
 
-All of these steps are defined in a JSON file provided that you will use as the input into the AWS CLI to create the pipeline. This file is located at `~/environment/aws-modern-application-workshop/module-2/aws-cli/code-pipeline.json`, open it and replace the required attributes within, and save the file.
-
-Once saved, create a pipeline in CodePipeline with the following command:
-
-```
-aws codepipeline create-pipeline --cli-input-json file://~/environment/aws-modern-application-workshop/module-2/aws-cli/code-pipeline.json
-```
+Navigate to the CodePipeline console and spend a few minutes to explore it. You may see the source stage has failed. You can ignore this as our repository is empty now.
 
 #### Enable Automated Access to ECR Image Repository
 
