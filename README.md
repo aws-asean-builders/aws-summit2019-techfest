@@ -38,7 +38,7 @@ This sample application will use many different AWS services and features that m
 
 To learn more about how to build your own **Well Architected** and modern application on AWS, please [visit here](https://aws.amazon.com/architecture/well-architected/) for additional content about following AWS best practices in your own architecture.
 
-This workshop is offered in Python. [Click here](https://github.com/aws-asean-builders/aws-modern-application-workshop/tree/python) to get started
+This workshop is offered in Python. [Click here](https://github.com/aws-asean-builders/aws-summit2019-techfest/tree/python) to get started.
 
 
 ### AWS Developer Center
