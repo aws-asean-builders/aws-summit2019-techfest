@@ -16,10 +16,9 @@ In this module, follow the instructions to create your cloud-based IDE on [AWS C
 #### Sign In to the AWS Console
 To begin, sign in to the [AWS Console](https://console.aws.amazon.com) for the AWS account you will be using in this workshop.
 
-This web application can be deployed in any AWS region that supports all the services used in this application. For this workshop, select one of the regions below from the dropdown in the upper right corner of the AWS Management Console.
+Make sure to select the region you deployed your core stack to.
 
 * us-east-1 (N. Virginia)
-* us-east-2 (Ohio)
 * us-west-2 (Oregon)
 
 
@@ -133,7 +132,7 @@ aws s3api put-bucket-policy --bucket REPLACE_ME_BUCKET_NAME --policy file://~/en
 
 #### Publish the Website Content to S3
 
-Now that our S3 bucket is created, let's add the first iteration of the Mythical Mysfits homepage to the bucket.  Use the following S3 CLI command that mimics the linux command for copying files (**cp**) to copy the provided index.html page locally from your IDE up to the new S3 bucket (replacing the bucket name appropriately).
+Now that our S3 bucket is configured, let's add the first iteration of the Mythical Mysfits homepage to the bucket.  Use the following S3 CLI command that mimics the linux command for copying files (**cp**) to copy the provided index.html page locally from your IDE up to the new S3 bucket (replacing the bucket name appropriately).
 
 ```
 aws s3 cp ~/environment/aws-modern-application-workshop/module-1/web/index.html s3://REPLACE_ME_BUCKET_NAME/index.html
