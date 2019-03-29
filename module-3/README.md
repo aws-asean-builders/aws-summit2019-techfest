@@ -15,12 +15,12 @@ Now that you have a service deployed and a working CI/CD pipeline to deliver cha
 
 #### Create a DynamoDB Table
 
-To add a DynamoDB table to the architecture, we have included another JSON CLI input file that defines a table called **MysfitsTable**. This table will have a primary index defined by a hash key attribute called **MysfitId**, and two more secondary indexes.  The first secondary index will have the hash key of **GoodEvil** and a range key of **MysfitId**, and the second secondary index will have the hash key of **LawChaos** and a range key of **MysfitId**.  These two secondary indexes will allow us to execute queries against the table to retrieve all of the mysfits that match a given Species or Alignment to enable the filter functionality you may have noticed isn't yet working on the website.  You can view this file at `~/environment/aws-modern-application-workshop/module-3/aws-cli/dynamodb-table.json`. No changes need to be made to this file and it is ready to execute.  To learn more about indexes in DynamoDB and other core concepts, visit [this page](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html).
+To add a DynamoDB table to the architecture, we have included another JSON CLI input file that defines a table called **MysfitsTable**. This table will have a primary index defined by a hash key attribute called **MysfitId**, and two more secondary indexes.  The first secondary index will have the hash key of **GoodEvil** and a range key of **MysfitId**, and the second secondary index will have the hash key of **LawChaos** and a range key of **MysfitId**.  These two secondary indexes will allow us to execute queries against the table to retrieve all of the mysfits that match a given Species or Alignment to enable the filter functionality you may have noticed isn't yet working on the website.  You can view this file at `~/environment/aws-summit2019-techfest/module-3/aws-cli/dynamodb-table.json`. No changes need to be made to this file and it is ready to execute.  To learn more about indexes in DynamoDB and other core concepts, visit [this page](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html).
 
 To create the table using the AWS CLI, execute the following command in the Cloud9 terminal:
 
 ```
-aws dynamodb create-table --cli-input-json file://~/environment/aws-modern-application-workshop/module-3/aws-cli/dynamodb-table.json
+aws dynamodb create-table --cli-input-json file://~/environment/aws-summit2019-techfest/module-3/aws-cli/dynamodb-table.json
 ```
 
 After the command runs, you can view the details of your newly created table by executing the following AWS CLI command in the terminal:
@@ -49,7 +49,7 @@ aws dynamodb scan --table-name MysfitsTable
 Also provided is a JSON file that can be used to batch insert a number of Mysfit items into this table.  This will be accomplished through the DynamoDB API **BatchWriteItem.** To call this API using the provided JSON file, execute the following terminal command (the response from the service should report that there are no items that went unprocessed):
 
 ```
-aws dynamodb batch-write-item --request-items file://~/environment/aws-modern-application-workshop/module-3/aws-cli/populate-dynamodb.json
+aws dynamodb batch-write-item --request-items file://~/environment/aws-summit2019-techfest/module-3/aws-cli/populate-dynamodb.json
 ```
 
 Now, if you run the same command to scan all of the table contents, you'll find the items have been loaded into the table:
@@ -66,7 +66,7 @@ Now that we have our data included in the table, let's modify our application co
 The request is formed using the AWS Python SDK called **boto3**. This SDK is a powerful yet simple way to interact with AWS services via Python code. It enables you to use service client definitions and functions that have great symmetry with the AWS APIs and CLI commands you've already been executing as part of this workshop.  Translating those commands to working Python code is simple when using **boto3**.  To copy the new files into your CodeCommit repository directory, execute the following command in the terminal:
 
 ```
-cp ~/environment/aws-modern-application-workshop/module-3/app/service/* ~/environment/MythicalMysfitsService-Repository/service/
+cp ~/environment/aws-summit2019-techfest/module-3/app/service/* ~/environment/MythicalMysfitsService-Repository/service/
 ```
 
 #### Push the Updated Code into the CI/CD Pipeline

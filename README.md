@@ -6,7 +6,7 @@
 
 **AWS Experience: Beginner**
 
-**Time to Complete: 3-4 hours**
+**Time to Complete: 2-3 hours**
 
 **Cost to Complete: Many of the services used are included in the AWS Free Tier. For those that are not, the sample application will cost, in total, less than $1/day.**
 
@@ -44,10 +44,14 @@ This web application can be deployed in any AWS region that supports all the ser
 * us-west-2 (Oregon)
 
 Navigate to CloudFormation on your AWS console and click on "Create stack". Select "Upload a template file" and choose the template you saved.
+
 ![cfn-upload-template](/images/cfn-upload-template.png)
 
-Click "Next" and specify stack name as MythicalMysfitsCoreStack. Click "Next" and leave stack options unchanged. Ont the next screen, acknowledge the creation of IAM respurces and click "Create stack".
+
+Click "Next" and specify stack name as MythicalMysfitsCoreStack. Click "Next" and leave stack options unchanged. On the next screen, acknowledge the creation of IAM resources and click "Create stack".
+
 ![cfn-create-stack](/images/cfn-create-stack.png)
+
 
 ## Begin the Modern Application Workshop
 

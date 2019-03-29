@@ -29,13 +29,15 @@ Copy the response from the above command, which includes the unique ID for your 
 Next, in order to integrate our frontend website with Cognito, we must create a new **User Pool Client** for this user pool. This generates a unique client identifier that will allow our website to be authorized to call the unauthenticated APIs in cognito where website users can sign-in and register against the Mythical Mysfits user pool.  To create a new client using the AWS CLI for the above user pool, run the following command (replacing the `--user-pool-id` value with the one you copied above):
 
 ```
-aws cognito-idp create-user-pool-client --user-pool-id REPLACE_ME --client-name MysfitsUserPoolClient
+aws cognito-idp create-user-pool-client --user-pool-id REPLACE_ME_USER_POOL_ID --client-name MysfitsUserPoolClient
 ```
 
 ### Adding a new REST API with Amazon API Gateway
 
 #### Create an API Gateway VPC Link
-Next, let's turn our attention to creating a new RESTful API in front of our existing Flask service, so that we can perform request authorization before our NLB receives any requests.  We will do this with **Amazon API Gateway**, as described in the module overview.  In order for API Gateway to privately integrate with our NLB, we will configure an **API Gateway VPC Link** that enables API Gateway APIs to directly integrate with backend web services that are privately hosted inside a VPC. **Note:** For the purposes of this workshop, we created the NLB to be *internet-facing* so that it could be called directly in earlier modules. Because of this, even though we will be requiring Authorization tokens in our API after this module, our NLB will still actually be open to the public behind the API Gateway API.  In a real-world scenario, you should create your NLB to be *internal* from the beginning (or create a new internal load balancer to replace the existing one), knowing that API Gateway would be your strategy for Internet-facing API authorization.  But for the sake of time, we'll use the NLB that we've already created that will stay publicly accessible.
+Next, let's turn our attention to creating a new RESTful API in front of our existing Flask service, so that we can perform request authorization before our NLB receives any requests.  We will do this with **Amazon API Gateway**.  In order for API Gateway to privately integrate with our NLB, we will configure an **API Gateway VPC Link** that enables API Gateway APIs to directly integrate with backend web services that are privately hosted inside a VPC. 
+
+**Note:** For the purposes of this workshop, we created the NLB to be *internet-facing* so that it could be called directly in earlier modules. Because of this, even though we will be requiring Authorization tokens in our API after this module, our NLB will still actually be open to the public behind the API Gateway API. In a real-world scenario, you should create your NLB to be *internal* from the beginning (or create a new internal load balancer to replace the existing one), knowing that API Gateway would be your strategy for Internet-facing API authorization.  But for the sake of time, we'll use the NLB that we've already created that will stay publicly accessible.
 
 Create the VPC Link for our upcoming REST API using the following CLI command (you will need to replace the indicated value with the Load Balancer ARN you saved when the NLB was created in module 2):
 
@@ -69,7 +71,7 @@ The `securityDefinitions` object within the API definition indicates that we hav
 CTRL-F through the file to search for the various places `REPLACE_ME` is located and awaiting your specific parameters.  Once the edits have been made, save the file and execute the following AWS CLI command:
 
 ```
-aws apigateway import-rest-api --parameters endpointConfigurationTypes=REGIONAL --body file://~/environment/aws-modern-application-workshop/module-4/aws-cli/api-swagger.json --fail-on-warnings
+aws apigateway import-rest-api --parameters endpointConfigurationTypes=REGIONAL --body file://~/environment/aws-summit2019-techfest/module-4/aws-cli/api-swagger.json --fail-on-warnings
 ```
 
 Copy the response this command returns and save the `id` value for the next step:
@@ -92,13 +94,13 @@ Copy the response this command returns and save the `id` value for the next step
 Now, our API has been created, but it's yet to be deployed anywhere. To deploy our API, we must first create a deployment and indicate which **stage** the deployment is fore.  A stage is a named reference to a deployment, which is a snapshot of the API. You use a Stage to manage and optimize a particular deployment. For example, you can set up stage settings to enable caching, customize request throttling, configure logging, define stage variables or attach a canary release for testing.  We will call our stage `prod`. To create a deployment for the prod stage, execute the following CLI command:
 
 ```
-aws apigateway create-deployment --rest-api-id REPLACE_ME_WITH_API_ID --stage-name prod
+aws apigateway create-deployment --rest-api-id REPLACE_ME_API_ID --stage-name prod
 ```
 
 With that, our REST API that's capable of user Authorization is deployed and available on the Internet... but where?!  Your API is available at the following location:
 
 ```
-https://REPLACE_ME_WITH_API_ID.execute-api.REPLACE_ME_WITH_REGION.amazonaws.com/prod
+https://REPLACE_ME_API_ID.execute-api.REPLACE_ME_REGION.amazonaws.com/prod
 ```
 
 Copy the above, replacing the appropriate values, and add `/mysfits` to the end of the URI.  Entered into a browser address bar, you should once again see your Mysfits JSON response.  But, we've added several capabilities like adopting and liking mysfits that our Flask service backend doesn't have implemented yet.
@@ -117,7 +119,7 @@ cd ~/environment/MythicalMysfitsService-Repository/
 ```
 
 ```
-cp -r ~/environment/aws-modern-application-workshop/module-4/app/* .
+cp -r ~/environment/aws-summit2019-techfest/module-4/app/* .
 ```
 
 ```
@@ -136,7 +138,7 @@ While those service updates are being automatically pushed through your CI/CD pi
 
 #### Update the Mythical Mysfits Website in S3
 
-Open the new version of the Mythical Mysfits index.html file we will push to S3 shortly, it is located at: `~/environment/aws-modern-application-workshop/module-4/app/web/index.html`
+Open the new version of the Mythical Mysfits index.html file we will push to S3 shortly, it is located at: `~/environment/aws-summit2019-techfest/module-4/app/web/index.html`
 In this new index.html file, you'll notice additional HTML and JavaScript code that is being used to add a user registration and login experience.  This code is interacting with the AWS Cognito JavaScript SDK to help manage registration, authentication, and authorization to all of the API calls that require it.
 
 In this file, replace the strings **REPLACE_ME** inside the single quotes with the OutputValues you copied from above and save the file:
@@ -148,7 +150,7 @@ Also, for the user registration process, you have an additional two HTML files t
 Now, lets copy these HTML files, as well as the Cognito JavaScript SDK to the S3 bucket hosting our Mythical Mysfits website content so that the new features will be published online.
 
 ```
-aws s3 cp --recursive ~/environment/aws-modern-application-workshop/module-4/web/ s3://YOUR-S3-BUCKET/
+aws s3 cp --recursive ~/environment/aws-summit2019-techfest/module-4/web/ s3://REPLACE_ME_BUCKET_NAME/
 ```
 
 Refresh the Mythical Mysfits website in your browser to see the new functionality in action!

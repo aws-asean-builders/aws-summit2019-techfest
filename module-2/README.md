@@ -12,10 +12,6 @@
 * [Amazon Elastic Container Service (ECS)](https://aws.amazon.com/ecs/)
 * [AWS Fargate](https://aws.amazon.com/fargate/)
 * [AWS Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/)
-* [AWS CodeCommit](https://aws.amazon.com/codecommit/)
-* [AWS CodePipeline](https://aws.amazon.com/codepipeline/)
-* [AWS CodeDeploy](https://aws.amazon.com/codedeploy/)
-* [AWS CodeBuild](https://aws.amazon.com/codebuild/)
 
 
 ### Overview
@@ -51,7 +47,7 @@ Docker comes already installed on the Cloud9 IDE that you've created, so in orde
 * Navigate to `~/environment/module-2/app`
 
 ```
-cd ~/environment/aws-modern-application-workshop/module-2/app
+cd ~/environment/aws-summit2019-techfest/module-2/app
 ```
 
 * You can get your account ID and default region from the output of the previous CloudFormation **describe-stacks**
@@ -91,9 +87,9 @@ This will open another panel in the IDE where the web browser will be available.
 
 ![preview-menu](/images/module-2/address-bar.png)
 
-If successful you will see a response from the service that returns the JSON document stored at `/aws-modern-application-workshop/module-2/app/service/mysfits-response.json`
+If successful you will see a response from the service that returns the JSON document stored at `/aws-summit2019-techfest/module-2/app/service/mysfits-response.json`
 
-When done testing the service you can stop it by pressing CTRL-c on PC or Mac.
+When done testing the service you can stop it by pressing CTRL-c on terminal.
 
 #### Pushing the Docker Image to Amazon ECR
 
@@ -152,7 +148,7 @@ Now that we have a cluster created and a log group defined for where our contain
 
 A JSON file has been provided that will serve as the input to the CLI command.
 
-Open `~/environment/aws-modern-application-workshop/module-2/aws-cli/task-definition.json` in the IDE.
+Open `~/environment/aws-summit2019-techfest/module-2/aws-cli/task-definition.json` in the IDE.
 
 Replace the indicated values with the appropriate ones from your created resources.  
 
@@ -161,7 +157,7 @@ These values will be pulled from the CloudFormation response you copied earlier 
 Once you have replaced the values in `task-defintion.json` and saved it. Execute the following command to register a new task definition in ECS:
 
 ```
-aws ecs register-task-definition --cli-input-json file://~/environment/aws-modern-application-workshop/module-2/aws-cli/task-definition.json
+aws ecs register-task-definition --cli-input-json file://~/environment/aws-summit2019-techfest/module-2/aws-cli/task-definition.json
 ```
 
 ### Enabling a Load Balanced Fargate Service
@@ -213,22 +209,26 @@ If the above returns an error about the role existing already, you can ignore it
 
 #### Create the Service
 
-With the NLB created and configured, and the ECS service granted appropriate permissions, we're ready to create the actual ECS **service** where our containers will run and register themselves to the load balancer to receive traffic.  We have included a JSON file for the CLI input that is located at: `~/environment/aws-modern-application-workshop/module-2/aws-cli/service-definition.json`.  This file includes all of the configuration details for the service to be created, including indicating that this service should be launched with **AWS Fargate** - which means that you do not have to provision any servers within the targeted cluster.  The containers that are scheduled as part of the task used in this service will run on top of a cluster that is fully managed by AWS.
+With the NLB created and configured, and the ECS service granted appropriate permissions, we're ready to create the actual ECS **service** where our containers will run and register themselves to the load balancer to receive traffic.  We have included a JSON file for the CLI input that is located at: `~/environment/aws-summit2019-techfest/module-2/aws-cli/service-definition.json`.  This file includes all of the configuration details for the service to be created, including indicating that this service should be launched with **AWS Fargate** - which means that you do not have to provision any servers within the targeted cluster.  The containers that are scheduled as part of the task used in this service will run on top of a cluster that is fully managed by AWS.
 
-Open ```~/environment/aws-modern-application-workshop/module-2/aws-cli/service-definition.json``` in the IDE and replace the indicated values of `REPLACE_ME`. Save it, then run the following command to create the service:
+Open ```~/environment/aws-summit2019-techfest/module-2/aws-cli/service-definition.json``` in the IDE and replace the indicated values of `REPLACE_ME`. Save it, then run the following command to create the service:
 
 ```
-aws ecs create-service --cli-input-json file://~/environment/aws-modern-application-workshop/module-2/aws-cli/service-definition.json
+aws ecs create-service --cli-input-json file://~/environment/aws-summit2019-techfest/module-2/aws-cli/service-definition.json
 ```
 
 After your service is created, ECS will provision a new task that's running the container you've pushed to ECR, and register it to the created NLB.  
 
 #### Test the Service
 
-Copy the DNS name you saved when creating the NLB and send a request to it using the preview browser in Cloud9 (or by simply any web browser, since this time our service is available on the Internet). Try sending a request to the mysfits resource:
+Verify your Fargate service is up and running using AWS console. Navigate to ECS and select `MythicalMysfots-Cluster`. You should see one task running against the MythicalMysfits-Service.
+
+![fargate-service](/images/module-2/fargate-service.png)
+
+Copy the DNS name you saved when creating the NLB (in nlb-output.json) and send a request to it using the preview browser in Cloud9 (or by simply any web browser, since this time our service is available on the Internet). Try sending a request to the mysfits resource:
 
 ```
-http://mysfits-nlb-123456789-abc123456.elb.us-east-1.amazonaws.com/mysfits
+http://mysfits-nlb-xxxxx.elb.REPLACE_ME_REGION.amazonaws.com/mysfits
 ```
 
 A response showing the same JSON response we received earlier when testing the docker container locally in Cloud9 means your Flask API is up and running on AWS Fargate.
@@ -252,10 +252,10 @@ After pasting, the line should look similar to below:
 To upload this file to your S3 hosted website, use the bucket name again that was created during Module 1, and run the following command:
 
 ```
-aws s3 cp ~/environment/aws-modern-application-workshop/module-2/web/index.html s3://INSERT-YOUR-BUCKET-NAME/index.html
+aws s3 cp ~/environment/aws-summit2019-techfest/module-2/web/index.html s3://REPLACE_ME_BUCKET_NAME/index.html
 ```
 
-Open your website using the same URL used at the end of Module 1 in order to see your new Mythical Mysfits website, which is retrieving JSON data from your Flask API running within a docker container deployed to AWS Fargate!
+Open your website using the same CloudFront URL used at the end of Module 1 in order to see your new Mythical Mysfits website, which is retrieving JSON data from your Flask API running within a docker container deployed to AWS Fargate!
 
 **Note: If the page does not load completely, your browser could be preventing the loading of mixed content. This is because CloudFront connection is over https while NLB connection is over http. You can configure your browser to ignore this for now. We will sort this by using https end to end in Module 4.**
 
@@ -265,14 +265,12 @@ Open your website using the same URL used at the end of Module 1 in order to see
 ![Architecture](/images/module-2/architecture-module-2b.png)
 
 
-### Creating the CI/CD Pipeline
+### CI/CD Pipeline
 We have created the CI/CD pipeline as part of the core CloudFormation stack. Here is an overview of the different components of the pipeline.
 
 #### S3 Bucket for Pipeline Artifacts
 
 Now that you have a service up and running, you may think of code changes that you'd like to make to your Flask service.  It would be a bottleneck for your development speed if you had to go through all of the same steps above every time you wanted to deploy a new feature to your service. That's where Continuous Integration and Continuous Delivery or CI/CD come in!
-
-In this module, you will create a fully managed CI/CD stack that will automatically deliver all of the code changes that you make to your code base to the service you created during the last module.  
 
 First, we have already created a S3 bucket that will be used to store the temporary artifacts that are created in the middle of our CI/CD pipeline executions - mythicalmysfitscorestack-artifactbucket-xxxxxx
 
@@ -284,22 +282,22 @@ You'll need a place to push and store your code in. We use [**AWS CodeCommit Rep
 
 #### CodeBuild Project
 
-With a repository to store our code in, and an S3 bucket that will be used for our CI/CD artifacts, the missing piece is a way for a service build to occur.  This will be accomplished by creating an [**AWS CodeBuild Project**](https://aws.amazon.com/codebuild/).  Any time a build execution is triggered, AWS CodeBuild will automatically provision a build server to our configuration and execute the steps required to build our docker image and push a new version of it to the ECR repository we created (and then spin the server down when the build is completed).  The steps for our build (which package our Python code and build/push the Docker container) are included in the `~/environment/aws-modern-application-workshop/module-2/app/buildspec.yml` file.  The **buildspec.yml** file is what you create to instruct CodeBuild what steps are required for a build execution within a CodeBuild project.
+With a repository to store our code in, and an S3 bucket that will be used for our CI/CD artifacts, the missing piece is a way for a service build to occur.  This is accomplished by creating an [**AWS CodeBuild Project**](https://aws.amazon.com/codebuild/).  Any time a build execution is triggered, AWS CodeBuild will automatically provision a build server to our configuration and execute the steps required to build our docker image and push a new version of it to the ECR repository we created (and then spin the server down when the build is completed).  The steps for our build (which package our Python code and build/push the Docker container) are included in the `~/environment/aws-summit2019-techfest/module-2/app/buildspec.yml` file.  The **buildspec.yml** file is what you create to instruct CodeBuild what steps are required for a build execution within a CodeBuild project.
 
 #### CodePipeline Pipeline
 
 Finally, we need a way to *continuously integrate* our CodeCommit repository with our CodeBuild project so that builds will automatically occur whenever a code change is pushed to the repository.  Then, we need a way to *continuously deliver* those newly built artifacts to our service in ECS.  [**AWS CodePipeline**](https://aws.amazon.com/codepipeline/) is the service that glues these actions together in a **pipeline**.  
 
-Your pipeline in CodePipeline will do just what I described above.  Anytime a code change is pushed into your CodeCommit repository, CodePipeline will deliver the latest code to your AWS CodeBuild project so that a build will occur. When successfully built by CodeBuild, CodePipeline will perform a deployment to ECS using the latest container image that the CodeBuild execution pushed into ECR.
+Anytime a code change is pushed into your CodeCommit repository, CodePipeline will deliver the latest code to your AWS CodeBuild project so that a build will occur. When successfully built by CodeBuild, CodePipeline will perform a deployment to ECS using the latest container image that the CodeBuild execution pushed into ECR.
 
 Navigate to the CodePipeline console and spend a few minutes to explore it. You may see the source stage has failed. You can ignore this as our repository is empty now.
 
 #### Enable Automated Access to ECR Image Repository
 
-We have one final step before our CI/CD pipeline can execute end-to-end successfully. With a CI/CD pipeline in place, you won't be manually pushing container images into ECR anymore.  CodeBuild will be pushing new images now. We need to give CodeBuild permission to perform actions on your image repository with an **ECR repository policy***.  The policy document needs to be updated with the specific ARN for the CodeBuild role created by the MythicalMysfitsCoreStack, and the policy document is located at `~/environment/aws-modern-application-workshop/module-2/aws-cli/ecr-policy.json`.  Update and save this file and then run the following command to create the policy:
+We have one final step before our CI/CD pipeline can execute end-to-end successfully. With a CI/CD pipeline in place, you won't be manually pushing container images into ECR anymore.  CodeBuild will be pushing new images now. We need to give CodeBuild permission to perform actions on your image repository with an **ECR repository policy**.  The policy document needs to be updated with the specific ARN for the CodeBuild role created by the MythicalMysfitsCoreStack, and the policy document is located at `~/environment/aws-summit2019-techfest/module-2/aws-cli/ecr-policy.json`.  You will find the role arn in cloudformation-core-output.json. Update and save this file and then run the following command to create the policy:
 
 ```
-aws ecr set-repository-policy --repository-name mythicalmysfits/service --policy-text file://~/environment/aws-modern-application-workshop/module-2/aws-cli/ecr-policy.json
+aws ecr set-repository-policy --repository-name mythicalmysfits/service --policy-text file://~/environment/aws-summit2019-techfest/module-2/aws-cli/ecr-policy.json
 ```
 
 When that has been created successfully, you have a working end-to-end CI/CD pipeline to deliver code changes automatically to your service in ECS.
@@ -336,13 +334,13 @@ cd ~/environment/
 Now, we are ready to clone our repository using the following terminal command:
 
 ```
-git clone https://git-codecommit.REPLACE_REGION.amazonaws.com/v1/repos/MythicalMysfitsService-Repository
+git clone https://git-codecommit.REPLACE_ME_REGION.amazonaws.com/v1/repos/MythicalMysfitsService-Repository
 ```
 
 This will tell us that our repository is empty!  Let's fix that by copying the application files into our repository directory using the following command:
 
 ```
-cp -r ~/environment/aws-modern-application-workshop/module-2/app/* ~/environment/MythicalMysfitsService-Repository/
+cp -r ~/environment/aws-summit2019-techfest/module-2/app/* ~/environment/MythicalMysfitsService-Repository/
 ```
 
 #### Pushing a Code Change
