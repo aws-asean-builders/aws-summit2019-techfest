@@ -94,7 +94,7 @@ Copy the response this command returns and save the `id` value for the next step
 
 ### Deploy the API
 
-Now, our API has been created, but it's yet to be deployed anywhere. To deploy our API, we must first create a deployment and indicate which **stage** the deployment is fore.  A stage is a named reference to a deployment, which is a snapshot of the API. You use a Stage to manage and optimize a particular deployment. For example, you can set up stage settings to enable caching, customize request throttling, configure logging, define stage variables or attach a canary release for testing.  We will call our stage `prod`. To create a deployment for the prod stage, execute the following CLI command:
+Now, our API has been created, but it's yet to be deployed anywhere. To deploy our API, we must first create a deployment and indicate which **stage** the deployment is for.  A stage is a named reference to a deployment, which is a snapshot of the API. You use a Stage to manage and optimize a particular deployment. For example, you can set up stage settings to enable caching, customize request throttling, configure logging, define stage variables or attach a canary release for testing.  We will call our stage `prod`. To create a deployment for the prod stage, execute the following CLI command:
 
 ```bash
 aws apigateway create-deployment --rest-api-id REPLACE_ME_API_ID --stage-name prod
@@ -158,6 +158,32 @@ aws s3 cp --recursive ~/environment/aws-summit2019-techfest/module-4/web/ s3://R
 Refresh the Mythical Mysfits website in your browser to see the new functionality in action!
 
 This concludes Module 4.
+
+## Lab Clean-Up
+
+Be sure to delete all of the resources created during the workshop in order to ensure that billing for the resources does not continue for longer than you intend. You can utilize the AWS Console to explore the following resources you've created and delete them when you're ready.
+
+* Amazon Cognito User Pool
+* VPC Link (from API Gateway console)
+* Amazon API Gateway
+* Amazon DynamoDB Table
+* Amazon ECS Cluster
+* Amazon ECR Repository
+* Network Load Balancer and Target Group
+* CloudWatch Logs
+You can run the command below to identify CloudWatch log groups for deletion.
+
+``` bash
+aws logs describe-log-groups --query 'logGroups[*].logGroupName' | grep -i mysfit
+```
+
+For the core resources provisioned using AWS CloudFormation, you can remove them by simply running the following CLI command. You will have to empty your website and CI/CD artifacts buckets before deleting the CloudFormation stack. CloudFormation will be unable to delete them otherwise.
+
+```bash
+aws cloudformation delete-stack --stack-name MythicalMysfitsCoreStack
+```
+
+Finally, you can delete your AWS Cloud9 environment.
 
 ## Conclusion
 
