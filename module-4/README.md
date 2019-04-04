@@ -164,20 +164,36 @@ This concludes Module 4.
 Be sure to delete all of the resources created during the workshop in order to ensure that billing for the resources does not continue for longer than you intend. You can utilize the AWS Console to explore the following resources you've created and delete them when you're ready.
 
 * Amazon Cognito User Pool
-* VPC Link (from API Gateway console)
 * Amazon API Gateway
+* VPC Link (from API Gateway console)
+
+  You must delete the API before you can delete the VPC link. However if the Mysfits one was the only API you had in the region, you will not be able to access the VPC Link from the API Gateway console. You can delete it using the command below instead. You can find your VPC link id in the file `api-gateway-link-output.json` in your Cloud9 environment.
+
+  ```bash
+  aws apigateway delete-vpc-link --vpc-link-id YOUR_VPC_LINK_ID
+  ```
+
 * Amazon DynamoDB Table
 * Amazon ECS Cluster
+
+  You cannot delete the cluster when there are active tasks running. Select the service and delete it first. You will see a warning about active load balancing resources. You can ignore this. You will have to wait a few minutes for the service to scale down. When there are no more tasks running, you will be able to delete the cluster.
 * Amazon ECR Repository
-* Network Load Balancer and Target Group
-* CloudWatch Logs
-You can run the command below to identify CloudWatch log groups for deletion.
+* Amazon ECS Task Definition
 
-``` bash
-aws logs describe-log-groups --query 'logGroups[*].logGroupName' | grep -i mysfit
-```
+  Select the task definition and de-register all the revisions. This will delete the task definition.
+* Network Load Balancer
 
-For the core resources provisioned using AWS CloudFormation, you can remove them by simply running the following CLI command. You will have to empty your website and CI/CD artifacts buckets before deleting the CloudFormation stack. CloudFormation will be unable to delete them otherwise.
+  You will not be able to delete the load balancer before deleting the VPC link.
+* Load Balancer Target Group
+* CloudWatch Log Groups
+
+  You can run the command below to identify CloudWatch log groups for deletion.
+
+  ``` bash
+  aws logs describe-log-groups --query 'logGroups[*].logGroupName' | grep -i mysfit
+  ```
+
+For the core resources provisioned using AWS CloudFormation, you can either run the following CLI command or delete the stack from the CloudFormation console. You will have to empty your website (`mythicalmysfitscorestack-wwwbucket-xxxxxx`) and CI/CD artifact (`mythicalmysfitscorestack-artifactbucket-xxxxxx`) S3 buckets before deleting the stack. CloudFormation will be unable to delete them otherwise.
 
 ```bash
 aws cloudformation delete-stack --stack-name MythicalMysfitsCoreStack
