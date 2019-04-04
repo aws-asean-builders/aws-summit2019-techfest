@@ -5,37 +5,38 @@
 **Time to complete:** 20 minutes
 
 **Services used:**
+
 * [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)
 
-### Overview
+## Overview
 
 Now that you have a service deployed and a working CI/CD pipeline to deliver changes to that service automatically whenever you update your code repository, you can quickly move new application features from conception to available for your Mythical Mysfits customers.  With this increased agility, let's add another foundational piece of functionality to the Mythical Mysfits website architecture, a data tier.  In this module you will create a table in [Amazon DynamoDB](https://aws.amazon.com/dynamodb/), a managed and scalable NoSQL database service on AWS with super fast performance.  Rather than have all of the Mysfits be stored in a static JSON file, we will store them in a database to make the websites future more extensible and scalable.
 
-### Adding a NoSQL Database to Mythical Mysfits
+## Adding a NoSQL Database to Mythical Mysfits
 
-#### Create a DynamoDB Table
+### Create a DynamoDB Table
 
 To add a DynamoDB table to the architecture, we have included another JSON CLI input file that defines a table called **MysfitsTable**. This table will have a primary index defined by a hash key attribute called **MysfitId**, and two more secondary indexes.  The first secondary index will have the hash key of **GoodEvil** and a range key of **MysfitId**, and the second secondary index will have the hash key of **LawChaos** and a range key of **MysfitId**.  These two secondary indexes will allow us to execute queries against the table to retrieve all of the mysfits that match a given Species or Alignment to enable the filter functionality you may have noticed isn't yet working on the website.  You can view this file at `~/environment/aws-summit2019-techfest/module-3/aws-cli/dynamodb-table.json`. No changes need to be made to this file and it is ready to execute.  To learn more about indexes in DynamoDB and other core concepts, visit [this page](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html).
 
 To create the table using the AWS CLI, execute the following command in the Cloud9 terminal:
 
-```
+```bash
 aws dynamodb create-table --cli-input-json file://~/environment/aws-summit2019-techfest/module-3/aws-cli/dynamodb-table.json
 ```
 
 After the command runs, you can view the details of your newly created table by executing the following AWS CLI command in the terminal:
 
-```
+```bash
 aws dynamodb describe-table --table-name MysfitsTable
 ```
 
 If we execute the following command to retrieve all of the items stored in the table, you'll see that the table is empty:
 
-```
+```bash
 aws dynamodb scan --table-name MysfitsTable
 ```
 
-```
+```bash
 {
     "Count": 0,
     "Items": [],
@@ -44,48 +45,49 @@ aws dynamodb scan --table-name MysfitsTable
 }
 ```
 
-#### Add Items to the DynamoDB Table
+### Add Items to the DynamoDB Table
 
 Also provided is a JSON file that can be used to batch insert a number of Mysfit items into this table.  This will be accomplished through the DynamoDB API **BatchWriteItem.** To call this API using the provided JSON file, execute the following terminal command (the response from the service should report that there are no items that went unprocessed):
 
-```
+```bash
 aws dynamodb batch-write-item --request-items file://~/environment/aws-summit2019-techfest/module-3/aws-cli/populate-dynamodb.json
 ```
 
 Now, if you run the same command to scan all of the table contents, you'll find the items have been loaded into the table:
 
-```
+```bash
 aws dynamodb scan --table-name MysfitsTable
 ```
 
-### Committing The First *Real* Code change
+## Committing the First *Real* Code change
 
-#### Copy the Updated Flask Service Code
+### Copy the Updated Flask Service Code
+
 Now that we have our data included in the table, let's modify our application code to read from this table instead of returning the static JSON file that was used in Module 2.  We have included a new set of Python files for your Flask microservice, but now instead of reading the static JSON file will make a request to DynamoDB.
 
 The request is formed using the AWS Python SDK called **boto3**. This SDK is a powerful yet simple way to interact with AWS services via Python code. It enables you to use service client definitions and functions that have great symmetry with the AWS APIs and CLI commands you've already been executing as part of this workshop.  Translating those commands to working Python code is simple when using **boto3**.  To copy the new files into your CodeCommit repository directory, execute the following command in the terminal:
 
-```
+```bash
 cp ~/environment/aws-summit2019-techfest/module-3/app/service/* ~/environment/MythicalMysfitsService-Repository/service/
 ```
 
-#### Push the Updated Code into the CI/CD Pipeline
+### Push the Updated Code into the CI/CD Pipeline
 
 Now, we need to check in these code changes to CodeCommit using the git command line client.  Run the following commands to check in the new code changes and kick of your CI/CD pipeline:
 
-```
+```bash
 cd ~/environment/MythicalMysfitsService-Repository
 ```
 
-```
+```bash
 git add .
 ```
 
-```
+```bash
 git commit -m "Add new integration to DynamoDB."
 ```
 
-```
+```bash
 git push
 ```
 
@@ -96,6 +98,5 @@ Nothing has changed from the frontend perspective. Re-visit your Mythical Mysfit
 That concludes module 3.
 
 [Proceed to Module 4](/module-4)
-
 
 ## [AWS Developer Center](https://developer.aws)
