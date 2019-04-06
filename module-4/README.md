@@ -155,7 +155,7 @@ aws s3 cp --recursive ~/environment/aws-summit2019-techfest/module-4/web/ s3://R
 
 Refresh the Mythical Mysfits website in your browser to see the new functionality in action!
 
-This concludes Module 4.
+This concludes Module 4 and also the lab!
 
 ## 4. Lab Clean-Up
 

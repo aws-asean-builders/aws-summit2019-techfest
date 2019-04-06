@@ -39,7 +39,7 @@ You can find the CloudFormation template to create all of the necessary Network 
 * [**IAM Roles**](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html) - Identity and Access Management Roles are created. These will be used throughout the workshop to give AWS services or resources you create access to other AWS services like DynamoDB, S3, and more.
 * [**S3 Bucket**](https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html) - to host our static website.
 * [**CloudFront Distribution**](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-overview.html) - to access our static website hosted on S3.
-* [**CI/CD Pipeline**](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-cd-pipeline.html) - to automate deployments to Fargate tasks. W ewill use CodeCommit to store our source code and CodeBuild to create updated contaner images.
+* [**CI/CD Pipeline**](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-cd-pipeline.html) - to automate deployments to Fargate tasks. We will use CodeCommit to store our source code and CodeBuild to create updated container images.
 
 This web application can be deployed in any AWS region that supports all the services used in this application. For this workshop, select one of the regions below from the dropdown in the upper right corner of the AWS Management Console.
 

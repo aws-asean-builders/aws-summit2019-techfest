@@ -66,7 +66,7 @@ cd aws-summit2019-techfest
 
 ## 3. Creating a Website with Amazon CloudFront and Amazon S3
 
-We will create the infrastructure components needed for this lab via the [AWS CLI](https://aws.amazon.com/cli/). If you do not already have the AWS CLI configured see [getting started](http://docs.aws.amazon.com/cli/latest/userguide/).
+We will create the infrastructure components needed for this lab via the [AWS CLI](https://aws.amazon.com/cli/). This is already installed in your Cloud9 environment. If you wish to configure the AWS CLI in your own environment, see [getting started](http://docs.aws.amazon.com/cli/latest/userguide/).
 
 We have pre-created some of the services for you including the Amazon S3 bucket to host your website and the Amazon CloudFront distribution.
 
