@@ -2,7 +2,7 @@
 
 ![Architecture](/images/module-2/architecture-module-2.png)
 
-**Time to complete:** 40 minutes
+**Time to complete:** 45 minutes
 
 **Services used:**
 
@@ -14,11 +14,11 @@
 * [AWS Fargate](https://aws.amazon.com/fargate/)
 * [AWS Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/)
 
-## Overview
-
 In Module 2, you will create a new microservice hosted using [AWS Fargate](https://aws.amazon.com/fargate/) on [Amazon Elastic Container Service](https://aws.amazon.com/ecs/) so that your Mythical Mysfits website can have a application backend to integrate with. AWS Fargate is a deployment option in Amazon ECS that allows you to deploy containers without having to manage any clusters or servers. For our Mythical Mysfits backend, we will use Python and create a Flask app in a Docker container behind a Network Load Balancer. These will form the microservice backend for the frontend website to integrate with.
 
 ## Core Infrastructure
+
+### 1. Get Core Stack Details
 
 You can check your stack you created earlier either via the AWS Console or by running the command:
 
@@ -32,11 +32,11 @@ aws cloudformation describe-stacks --stack-name MythicalMysfitsCoreStack
 aws cloudformation describe-stacks --stack-name MythicalMysfitsCoreStack > ~/environment/cloudformation-core-output.json
 ```
 
-## Module 2a: Deploying a Service with AWS Fargate
+## Deploying a Service with AWS Fargate
 
-### Creating a Flask Service Container
+### 2. Creating a Flask Service Container
 
-#### Building A Docker Image
+#### 2.1. Building A Docker Image
 
 Next, you will create a docker container image that contains all of the code and configuration required to run the Mythical Mysfits backend as a microservice API created with Flask.  We will build the docker container image within Cloud9 and then push it to the Amazon Elastic Container Registry, where it will be available to pull when we create our service using Fargate.
 
@@ -65,7 +65,7 @@ Successfully built 8bxxxxxxxxab
 Successfully tagged 111111111111.dkr.ecr.us-east-1.amazonaws.com/mythicalmysfits/service:latest
 ```
 
-#### Testing the Service Locally
+#### 2.2. Testing the Service Locally
 
 Let's test our image locally within Cloud9 to make sure everything is operating as expected. Copy the image tag that resulted from the previous command and run the following command to deploy the container “locally” (which is actually within your Cloud9 IDE inside AWS!):
 
@@ -91,7 +91,7 @@ If successful you will see a response from the service that returns the JSON doc
 
 When done testing the service you can stop it by pressing CTRL-c on terminal.
 
-#### Pushing the Docker Image to Amazon ECR
+#### 2.3. Pushing the Docker Image to Amazon ECR
 
 With a successful test of our service locally, we're ready to create a container image repository in [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/) (Amazon ECR) and push our image into it.  In order to create the registry, run the following command, this creates a new repository in the default AWS ECR registry created for your account.
 
@@ -118,9 +118,9 @@ Run the following command to see your newly pushed docker image stored inside th
 aws ecr describe-images --repository-name mythicalmysfits/service
 ```
 
-### Configuring the Service Prerequisites in Amazon ECS
+### 3. Configuring the Service Prerequisites in Amazon ECS
 
-#### Create an ECS Cluster
+#### 3.1. Create an ECS Cluster
 
 Now, we have an image available in ECR that we can deploy to a service hosted on Amazon ECS using AWS Fargate.  The same service you tested locally via the terminal in Cloud9 as part of the last module will now be deployed in the cloud and publicly available behind a Network Load Balancer.  
 
@@ -132,7 +132,7 @@ To create a new cluster in ECS, run the following command:
 aws ecs create-cluster --cluster-name MythicalMysfits-Cluster
 ```
 
-#### Create an AWS CloudWatch Logs Group
+#### 3.2. Create an AWS CloudWatch Logs Group
 
 Next, we will create a new log group in **AWS CloudWatch Logs**.  AWS CloudWatch Logs is a service for log collection and analysis. The logs that your container generates will automatically be pushed to AWS CloudWatch logs as part of this specific group. This is especially important when using AWS Fargate since you will not have access to the server infrastructure where your containers are running.
 
@@ -142,7 +142,7 @@ To create the new log group in CloudWatch logs, run the following command:
 aws logs create-log-group --log-group-name mythicalmysfits-logs
 ```
 
-#### Register an ECS Task Definition
+#### 3.3. Register an ECS Task Definition
 
 Now that we have a cluster created and a log group defined for where our container logs will be pushed to, we're ready to register an ECS **task definition**.  A task in ECS is a set of container images that should be scheduled together. A task definition declares that set of containers and the resources and configuration those containers require.  You will use the AWS CLI to create a new task definition for how your new container image should be scheduled to the ECS cluster we just created.  
 
@@ -160,9 +160,9 @@ Once you have replaced the values in `task-definition.json` and saved it. Execut
 aws ecs register-task-definition --cli-input-json file://~/environment/aws-summit2019-techfest/module-2/aws-cli/task-definition.json
 ```
 
-### Enabling a Load Balanced Fargate Service
+### 4. Enabling a Load Balanced Fargate Service
 
-#### Create a Network Load Balancer
+#### 4.1. Create a Network Load Balancer
 
 With a new task definition registered, we're ready to provision the infrastructure needed in our service stack. Rather than directly expose our service to the Internet, we will provision a [**Network Load Balancer (NLB)**](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html) to sit in front of our service tier.  This would enable our frontend website code to communicate with a single DNS name while our backend service would be free to elastically scale in-and-out, in multiple Availability Zones, based on demand or if failures occur and new containers need to be provisioned.
 
@@ -174,7 +174,7 @@ aws elbv2 create-load-balancer --name mysfits-nlb --scheme internet-facing --typ
 
 When this command has successfully completed, a new file will be created in your IDE called `nlb-output.json`. You will be using the `DNSName`, `VpcId`, and `LoadBalancerArn` in later steps.
 
-#### Create a Load Balancer Target Group
+#### 4.2. Create a Load Balancer Target Group
 
 Next, use the CLI to create an NLB **target group**. A target group allows AWS resources to register themselves as targets for requests that the load balancer receives to forward.  Our service containers will automatically register to this target so that they can receive traffic from the NLB when they are provisioned. This command includes one value that will need to be replaced, your `vpc-id` which can be found as a value within the earlier saved `MythicalMysfitsCoreStack` output returned by CloudFormation.
 
@@ -184,7 +184,7 @@ aws elbv2 create-target-group --name MythicalMysfits-TargetGroup --port 8080 --p
 
 When this command completes, its output will be saved to `target-group-output.json` in your IDE. You will reference the `TargetGroupArn` value in a subsequent step.
 
-#### Create a Load Balancer Listener
+#### 4.3. Create a Load Balancer Listener
 
 Next, use the CLI to create a load balancer **listener** for the NLB.  This informs that load balancer that for requests received on a specific port, they should be forwarded to targets that have registered to the above target group. Be sure to replace the two indicated values with the appropriate ARN from the TargetGroup and the NLB that you saved from the previous steps:
 
@@ -192,9 +192,9 @@ Next, use the CLI to create a load balancer **listener** for the NLB.  This info
 aws elbv2 create-listener --default-actions TargetGroupArn=REPLACE_ME_NLB_TARGET_GROUP_ARN,Type=forward --load-balancer-arn REPLACE_ME_NLB_ARN --port 80 --protocol TCP
 ```
 
-### Creating a Service with Fargate
+### 5. Creating a Service with Fargate
 
-#### Creating a Service Linked Role for ECS
+#### 5.1. Creating a Service Linked Role for ECS
 
 If you have already used ECS in the past you can skip over this step and move on to the next step.  If you have never used ECS before, we need to create an **service linked role** in IAM that grants the ECS service itself permissions to make ECS API requests within your account.  This is required because when you create a service in ECS, the service will call APIs within your account to perform actions like pulling docker images, creating new tasks, etc.
 
@@ -206,7 +206,7 @@ aws iam create-service-linked-role --aws-service-name ecs.amazonaws.com
 
 If the above returns an error about the role existing already, you can ignore it, as it would indicate the role has automatically been created in your account in the past.
 
-#### Create the Service
+#### 5.2. Create the Service
 
 With the NLB created and configured, and the ECS service granted appropriate permissions, we're ready to create the actual ECS **service** where our containers will run and register themselves to the load balancer to receive traffic.  We have included a JSON file for the CLI input that is located at: `~/environment/aws-summit2019-techfest/module-2/aws-cli/service-definition.json`.  This file includes all of the configuration details for the service to be created, including indicating that this service should be launched with **AWS Fargate** - which means that you do not have to provision any servers within the targeted cluster.  The containers that are scheduled as part of the task used in this service will run on top of a cluster that is fully managed by AWS.
 
@@ -218,7 +218,7 @@ aws ecs create-service --cli-input-json file://~/environment/aws-summit2019-tech
 
 After your service is created, ECS will provision a new task that's running the container you've pushed to ECR, and register it to the created NLB.  
 
-#### Test the Service
+#### 5.3. Test the Service
 
 Verify your Fargate service is up and running using AWS console. Navigate to ECS and select `MythicalMysfots-Cluster`. You should see one task running against the MythicalMysfits-Service.
 
@@ -234,9 +234,9 @@ A response showing the same JSON response we received earlier when testing the d
 
 >Note: This Network Load Balancer only supports HTTP (http://) requests since no SSL/TLS certificates are installed on it. For this tutorial, be sure to submit requests using http:// only, https:// requests will not work properly.
 
-### Update Mythical Mysfits to Call the NLB
+### 6. Update Mythical Mysfits to Call the NLB
 
-#### Replace the API Endpoint
+#### 6.1. Replace the API Endpoint
 
 Next, we need to integrate our website with your new API backend instead of using the hard coded data that we previously uploaded to S3.  You'll need to update the following file to use the same NLB URL for API calls (do not inlcude the /mysfits path): `/module-2/web/index.html`
 
@@ -248,7 +248,7 @@ After pasting, the line should look similar to below:
 
 ![after replace](/images/module-2/after-replace.png)
 
-#### Upload to S3
+#### 6.2. Upload to S3
 
 To upload this file to your S3 hosted website, use the bucket name again that was created during Module 1, and run the following command:
 
@@ -260,11 +260,11 @@ Open your website using the same CloudFront URL used at the end of Module 1 in o
 
 **Note: If the page does not load completely, your browser could be preventing the loading of mixed content. This is because CloudFront connection is over https while NLB connection is over http. You can configure your browser to ignore this for now. We will sort this by using https end to end in Module 4.**
 
-## Module 2b: Automating Deployments using AWS Code Services
+## Automating Deployments using AWS Code Services
 
 ![Architecture](/images/module-2/architecture-module-2b.png)
 
-### CI/CD Pipeline
+### 7. CI/CD Pipeline
 
 We have created the CI/CD pipeline as part of the core CloudFormation stack. Here is an overview of the different components of the pipeline.
 
@@ -292,7 +292,7 @@ Anytime a code change is pushed into your CodeCommit repository, CodePipeline wi
 
 Navigate to the CodePipeline console and spend a few minutes to explore it. You may see the source stage has failed. You can ignore this as our repository is empty now.
 
-#### Enable Automated Access to ECR Image Repository
+#### 7.1. Enable Automated Access to ECR Image Repository
 
 We have one final step before our CI/CD pipeline can execute end-to-end successfully. With a CI/CD pipeline in place, you won't be manually pushing container images into ECR anymore.  CodeBuild will be pushing new images now. We need to give CodeBuild permission to perform actions on your image repository with an **ECR repository policy**.  The policy document needs to be updated with the specific ARN for the CodeBuild role created by the MythicalMysfitsCoreStack, and the policy document is located at `~/environment/aws-summit2019-techfest/module-2/aws-cli/ecr-policy.json`.  You will find the role arn in cloudformation-core-output.json. Update and save this file and then run the following command to create the policy:
 
@@ -302,9 +302,9 @@ aws ecr set-repository-policy --repository-name mythicalmysfits/service --policy
 
 When that has been created successfully, you have a working end-to-end CI/CD pipeline to deliver code changes automatically to your service in ECS.
 
-### Test the CI/CD Pipeline
+### 8. Test the CI/CD Pipeline
 
-#### Using Git with AWS CodeCommit
+#### 8.1. Using Git with AWS CodeCommit
 
 To test out the new pipeline, we need to configure git within your Cloud9 IDE and integrate it with your CodeCommit repository.
 
@@ -344,7 +344,7 @@ This will tell us that our repository is empty!  Let's fix that by copying the a
 cp -r ~/environment/aws-summit2019-techfest/module-2/app/* ~/environment/MythicalMysfitsService-Repository/
 ```
 
-#### Pushing a Code Change
+#### 8.2. Pushing a Code Change
 
 Now the completed service code that we used to create our Fargate service in Module 2 is stored in the local repository that we just cloned from AWS CodeCommit.  Let's make a change to the Flask service before committing our changes, to demonstrate that the CI/CD pipeline we've created is working. In Cloud9, open the file stored at `~/environment/MythicalMysfitsService-Repository/service/mysfits-response.json` and change the age of one of the mysfits to another value and save the file.
 

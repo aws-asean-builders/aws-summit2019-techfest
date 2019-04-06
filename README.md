@@ -2,7 +2,7 @@
 
 ![mysfits-welcome](/images/module-1/mysfits-welcome.png)
 
-### Welcome to the **Python** version of the Build a Modern Application on AWS Workshop!
+## Welcome to the **Python** version of the Build a Modern Application on AWS Workshop
 
 **AWS Experience: Beginner**
 
@@ -18,7 +18,7 @@ Please be sure to terminate all of the resources created during this workshop to
 
 **Note:**  Estimated workshop costs assume little to no traffic will be served by your demo website created as part of this workshop.
 
-### Application Architecture
+## Application Architecture
 
 ![Application Architecture](/images/arch-diagram.png)
 
@@ -26,7 +26,7 @@ The Mythical Mysfits website serves it's static content from Amazon S3 with Amaz
 
 You will be creating and deploying changes to this application completely programmatically. You will use the AWS Command Line Interface to execute commands that create the required infrastructure components, which includes a fully managed CI/CD stack utilizing AWS CodeCommit, CodeBuild, and CodePipeline.  Finally, you will complete the development tasks required all within your own browser by leveraging the cloud-based IDE, AWS Cloud9.
 
-### Core Infrastructure
+## Core Infrastructure
 
 Before we can create our service, we need to create the core infrastructure environment that the service will use, including the networking infrastructure in [Amazon VPC](https://aws.amazon.com/vpc/), and the [AWS Identity and Access Management](https://aws.amazon.com/iam/) Roles that will define the permissions that ECS and our containers will have on top of AWS.  We have used [AWS CloudFormation](https://aws.amazon.com/cloudformation/) to accomplish this. AWS CloudFormation is a service that can programmatically provision AWS resources that you declare within JSON or YAML files called *CloudFormation Templates*, enabling the common best practice of *Infrastructure as Code*.  
 
@@ -43,15 +43,13 @@ This web application can be deployed in any AWS region that supports all the ser
 * us-east-1 (N. Virginia)
 * us-west-2 (Oregon)
 
-Navigate to CloudFormation on your AWS console and click on "Create stack". Select "Upload a template file" and choose the template you saved.
+1. Navigate to CloudFormation on your AWS console and click on "Create stack". Select "Upload a template file" and choose the template you saved.
 
 ![cfn-upload-template](/images/cfn-upload-template.png)
 
-
-Click "Next" and specify stack name as MythicalMysfitsCoreStack. Click "Next" and leave stack options unchanged. On the next screen, acknowledge the creation of IAM resources and click "Create stack".
+2. Click "Next" and specify stack name as MythicalMysfitsCoreStack. Click "Next" and leave stack options unchanged. On the next screen, acknowledge the creation of IAM resources and click "Create stack".
 
 ![cfn-create-stack](/images/cfn-create-stack.png)
-
 
 ## Begin the Modern Application Workshop
 

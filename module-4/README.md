@@ -10,13 +10,11 @@
 * [Amazon API Gateway](https://aws.amazon.com/api-gateway/)
 * [Amazon Simple Storage Service (S3)](https://aws.amazon.com/s3/)
 
-## Overview
-
 In order to add some more critical aspects to the Mythical Mysfits website, like allowing users to vote for their favorite mysfit and adopt a mysfit, we need to first have users register on the website.  To enable registration and authentication of website users, we will create a [**User Pool**](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools.html) in [**AWS Cognito**](http://aws.amazon.com/cognito/) - a fully managed user identity management service.  Then, to make sure that only registered users are authorized to like or adopt mysfits on the website, we will deploy an REST API with [**Amazon API Gateway**](https://aws.amazon.com/api-gateway/) to sit in front of our NLB. Amazon API Gateway is also a managed service, and provides commonly required REST API capabilities out of the box like SSL termination, request authorization, throttling, API stages and versioning, and much more.
 
-## Adding a User Pool for Website Users
+## 1. Adding a User Pool for Website Users
 
-### Create the Cognito User Pool
+### 1.1. Create the Cognito User Pool
 
 To create the **Cognito User Pool** where all of the Mythical Mysfits visitors will be stored, execute the following CLI command to create a user pool named *MysfitsUserPool* and indicate that all users who are registered with this pool should automatically have their email address verified via confirmation email before they become confirmed users.
 
@@ -26,7 +24,7 @@ aws cognito-idp create-user-pool --pool-name MysfitsUserPool --auto-verified-att
 
 Copy the response from the above command, which includes the unique ID for your user pool that you will need to use in later steps. Eg: `Id: us-east-1_ab12345YZ`
 
-### Create a Cognito User Pool Client
+### 1.2. Create a Cognito User Pool Client
 
 Next, in order to integrate our frontend website with Cognito, we must create a new **User Pool Client** for this user pool. This generates a unique client identifier that will allow our website to be authorized to call the unauthenticated APIs in cognito where website users can sign-in and register against the Mythical Mysfits user pool.  To create a new client using the AWS CLI for the above user pool, run the following command (replacing the `--user-pool-id` value with the one you copied above):
 
@@ -34,9 +32,9 @@ Next, in order to integrate our frontend website with Cognito, we must create a 
 aws cognito-idp create-user-pool-client --user-pool-id REPLACE_ME_USER_POOL_ID --client-name MysfitsUserPoolClient
 ```
 
-## Adding a new REST API with Amazon API Gateway
+## 2. Adding a new REST API with Amazon API Gateway
 
-### Create an API Gateway VPC Link
+### 2.1. Create an API Gateway VPC Link
 
 Next, let's turn our attention to creating a new RESTful API in front of our existing Flask service, so that we can perform request authorization before our NLB receives any requests.  We will do this with **Amazon API Gateway**.  In order for API Gateway to privately integrate with our NLB, we will configure an **API Gateway VPC Link** that enables API Gateway APIs to directly integrate with backend web services that are privately hosted inside a VPC.
 
@@ -50,7 +48,7 @@ aws apigateway create-vpc-link --name MysfitsApiVpcLink --target-arns REPLACE_ME
 
 The above command will create a file called `api-gateway-link-output.json` that contains the `id` for the VPC Link that is being created.  It will also show the status as `PENDING`, similar to below.  It will take about 5-10 minutes to finish being created, you can copy the `id` from this file and proceed on to the next step.
 
-```
+```json
 {
     "status": "PENDING",
     "targetArns": [
@@ -63,7 +61,7 @@ The above command will create a file called `api-gateway-link-output.json` that 
 
 With the VPC link creating, we can move on to create the actual REST API using Amazon API Gateway.  
 
-### Create the REST API using Swagger
+### 2.2. Create the REST API using Swagger
 
 Your MythicalMysfits REST API is defined using **Swagger**, a popular open-source framework for describing APIs via JSON.  This Swagger definition of the API is located at `~/environment/aws-modern-applicaiton-workshop/module-4/aws-cli/api-swagger.json`.  Open this file and you'll see the REST API and all of its resources, methods, and configuration defined within.  
 
@@ -79,7 +77,7 @@ aws apigateway import-rest-api --parameters endpointConfigurationTypes=REGIONAL 
 
 Copy the response this command returns and save the `id` value for the next step:
 
-```
+```json
 {
     "name": "MysfitsApi",
     "endpointConfiguration": {
@@ -92,7 +90,7 @@ Copy the response this command returns and save the `id` value for the next step
 }
 ```
 
-### Deploy the API
+### 2.3. Deploy the API
 
 Now, our API has been created, but it's yet to be deployed anywhere. To deploy our API, we must first create a deployment and indicate which **stage** the deployment is for.  A stage is a named reference to a deployment, which is a snapshot of the API. You use a Stage to manage and optimize a particular deployment. For example, you can set up stage settings to enable caching, customize request throttling, configure logging, define stage variables or attach a canary release for testing.  We will call our stage `prod`. To create a deployment for the prod stage, execute the following CLI command:
 
@@ -110,9 +108,9 @@ Copy the above, replacing the appropriate values, and add `/mysfits` to the end 
 
 Let's take care of that next.
 
-## Updating the Mythical Mysfits Website
+## 3. Updating the Mythical Mysfits Website
 
-### Update the Flask Service Backend
+### 3.1. Update the Flask Service Backend
 
 To accommodate the new functionality to view Mysfit Profiles, like, and adopt them, we have included updated Python code for your backend Flask web service.  Let's overwrite your existing codebase with these files and push them into the repository:
 
@@ -138,7 +136,7 @@ git push
 
 While those service updates are being automatically pushed through your CI/CD pipeline, continue on to the next step.
 
-### Update the Mythical Mysfits Website in S3
+### 3.2. Update the Mythical Mysfits Website in S3
 
 Open the new version of the Mythical Mysfits index.html file we will push to S3 shortly, it is located at: `~/environment/aws-summit2019-techfest/module-4/app/web/index.html`
 In this new index.html file, you'll notice additional HTML and JavaScript code that is being used to add a user registration and login experience.  This code is interacting with the AWS Cognito JavaScript SDK to help manage registration, authentication, and authorization to all of the API calls that require it.
@@ -159,7 +157,7 @@ Refresh the Mythical Mysfits website in your browser to see the new functionalit
 
 This concludes Module 4.
 
-## Lab Clean-Up
+## 4. Lab Clean-Up
 
 Be sure to delete all of the resources created during the workshop in order to ensure that billing for the resources does not continue for longer than you intend. You can utilize the AWS Console to explore the following resources you've created and delete them when you're ready.
 
