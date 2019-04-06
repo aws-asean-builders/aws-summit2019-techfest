@@ -37,6 +37,9 @@ You can find the CloudFormation template to create all of the necessary Network 
 * [**A DynamoDB VPC Endpoint**](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/vpc-endpoints-dynamodb.html) - our microservice backend will eventually integrate with [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) for persistence (as part of module 3).
 * [**A Security Group**](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html) - Allows your docker containers to receive traffic on port 8080 from the Internet through the Network Load Balancer.
 * [**IAM Roles**](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html) - Identity and Access Management Roles are created. These will be used throughout the workshop to give AWS services or resources you create access to other AWS services like DynamoDB, S3, and more.
+* [**S3 Bucket**](https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html) - to host our static website.
+* [**CloudFront Distribution**](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-overview.html) - to access our static website hosted on S3.
+* [**CI/CD Pipeline**](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-cd-pipeline.html) - to automate deployments to Fargate tasks. W ewill use CodeCommit to store our source code and CodeBuild to create updated contaner images.
 
 This web application can be deployed in any AWS region that supports all the services used in this application. For this workshop, select one of the regions below from the dropdown in the upper right corner of the AWS Management Console.
 
