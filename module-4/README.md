@@ -106,7 +106,27 @@ https://REPLACE_ME_API_ID.execute-api.REPLACE_ME_REGION.amazonaws.com/prod
 
 Copy the above, replacing the appropriate values, and add `/mysfits` to the end of the URI.  Entered into a browser address bar, you should once again see your Mysfits JSON response.  But, we've added several capabilities like adopting and liking mysfits that our Flask service backend doesn't have implemented yet.
 
-Let's take care of that next.
+Let's take care of that next by updating our website. But before that let's take a look at how authorization works.
+
+We have locked down only the `/mysfits/{mysfitsId}/like` and `/mysfits/{mysfitsId}/adopt` endpoints with Cognito. We can verify this using curl command from the Cloud9 terminal. Note down one of the `mysfitId` values from the output in the browser when you invoked the `/mysfits` endpoint. Run the command below and you should be able to see the details of the mysfit.
+
+```bash
+curl -XGET  https://REPLACE_ME_API_ID.execute-api.REPLACE_ME_REGION.amazonaws.com/prod/mysfits/REPLACE_ME_MYSFIT_ID
+```
+
+Next, try to adopt the mysfit.
+
+```bash
+curl -XPOST  https://REPLACE_ME_API_ID.execute-api.REPLACE_ME_REGION.amazonaws.com/prod/mysfits/REPLACE_ME_MYSFIT_ID/adopt
+```
+
+You should get a "Unauthorized" message.
+
+```json
+{"message":"Unauthorized"}
+```
+
+In order to adopt a mysfit, we will have to authenticate against Cognito first and pass the vended JWT token as Authorization header. The website will handle this for us.
 
 ## 3. Updating the Mythical Mysfits Website
 
